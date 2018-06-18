@@ -6,9 +6,6 @@
 # Radii that are not available in either of these publications have RvdW = 2.00 <br>
 # The radii for Ions (Na, K, Cl, Ca, Mg, and Cs are based on the CHARMM27 Rmin/2 parameters for (SOD, POT, CLA, CAL, MG, CES) by default.
 
-# In[1]:
-
-
 from __future__ import print_function, absolute_import
 from collections import OrderedDict
 import numpy as np
@@ -18,12 +15,7 @@ import os
 import glob
 from tqdm import *
 
-
 # Molecule class that assigns property of atom to a single voxel
-
-# In[2]:
-
-
 class Molecule1:
     mol = None
     coords = []
@@ -201,25 +193,22 @@ class Molecule1:
         
     
     def getVoxelDescriptors(self, side=1):
-        ##TODO: Fix 6th and 8th channel
-        
         voxel_side = side # in Angstorm
         
         # Get the channels for each of the properties
         elements = np.array([e.upper() for e in self.elements])
         properties = OrderedDict()
-        _prop_order = ['hydrophobic', 'aromatic', 'hbond_acceptor', 
-                       'negative_ionizable', 'positive_ionizable', 'negative_ionizable', 
-                       'metal', 'occupancies']
+        _prop_order = ['hydrophobic', 'aromatic', 'hbond_acceptor', 'hbond_donor', 'positive_ionizable',
+                       'negative_ionizable', 'metal', 'occupancies']
 
         properties['hydrophobic'] = (self.elements == 'C') | (self.elements == 'A')
         properties['aromatic'] = self.elements == 'A'
-        properties['hbond_acceptor'] = (self.elements == 'NA') | (self.elements == 'NS') |                                   (self.elements == 'OA') | (self.elements == 'OS') | (self.elements == 'SA')
+        properties['hbond_acceptor'] = (self.elements == 'NA') | (self.elements == 'NS') | (self.elements == 'OA') | (self.elements == 'OS') | (self.elements == 'SA')
         #properties['hbond_acceptor'] = np.array([a.OBAtom.IsHbondAcceptor() for a in self.mol.atoms], dtype=np.bool)
         properties['hbond_donor'] = np.array([a.OBAtom.IsHbondDonor() for a in self.mol.atoms], dtype=np.bool)
         properties['positive_ionizable'] = self.charges > 0.0
         properties['negative_ionizable'] = self.charges < 0.0
-        properties['metal'] = (self.elements == 'MG') | (self.elements == 'ZN') | (self.elements == 'MN') |                          (self.elements == 'CA') | (self.elements == 'FE')
+        properties['metal'] = (self.elements == 'MG') | (self.elements == 'ZN') | (self.elements == 'MN') | (self.elements == 'CA') | (self.elements == 'FE')
         properties['occupancies'] = (self.elements != 'H') & (self.elements != 'HS') & (self.elements != 'HD')
         
         channels = np.zeros((len(self.elements), len(properties)), dtype=bool)
@@ -273,23 +262,9 @@ class Molecule1:
             #break
             
         return features.reshape((N[0], N[1], N[2], -1))
-        
-#         # Initialize the occupancy array
-#         occupancy = np.zeros([len(centers), channels.shape[1]], dtype=np.float32)
-        
-#         for i in range(self.numAtoms):
-#             r = spatial.distance.cdist(self.coords[i].reshape((-1, 3)), centers)
-#             x = channels[i] / r.reshape(-1)[:, np.newaxis]
-#             n = 1.0 - np.exp(-np.power(x, 12))
-#             occupancy = np.maximum(occupancy, n)
-#         return occupancy.reshape((N[0], N[1], N[2], -1))
 
 
 # Molecule class that assigns property of atom to a single voxel and it's 8 neighbors
-
-# In[3]:
-
-
 class Molecule2:
     mol = None
     coords = []
@@ -466,26 +441,23 @@ class Molecule2:
         self.numAtoms = self.elements.shape[0]
         
     
-    def getVoxelDescriptors(self, side=1):
-        ##TODO: Fix 6th and 8th channel
-        
+    def getVoxelDescriptors(self, side=1):        
         voxel_side = side # in Angstorm
         
         # Get the channels for each of the properties
         elements = np.array([e.upper() for e in self.elements])
         properties = OrderedDict()
-        _prop_order = ['hydrophobic', 'aromatic', 'hbond_acceptor', 
-                       'hbond_donor', 'positive_ionizable', 'negative_ionizable', 
-                       'metal', 'occupancies']
+        _prop_order = ['hydrophobic', 'aromatic', 'hbond_acceptor', 'hbond_donor', 'positive_ionizable',
+                       'negative_ionizable', 'metal', 'occupancies']
 
         properties['hydrophobic'] = (self.elements == 'C') | (self.elements == 'A')
         properties['aromatic'] = self.elements == 'A'
-        properties['hbond_acceptor'] = (self.elements == 'NA') | (self.elements == 'NS') |                                   (self.elements == 'OA') | (self.elements == 'OS') | (self.elements == 'SA')
+        properties['hbond_acceptor'] = (self.elements == 'NA') | (self.elements == 'NS') | (self.elements == 'OA') | (self.elements == 'OS') | (self.elements == 'SA')
         #properties['hbond_acceptor'] = np.array([a.OBAtom.IsHbondAcceptor() for a in self.mol.atoms], dtype=np.bool)
         properties['hbond_donor'] = np.array([a.OBAtom.IsHbondDonor() for a in self.mol.atoms], dtype=np.bool)
         properties['positive_ionizable'] = self.charges > 0.0
         properties['negative_ionizable'] = self.charges < 0.0
-        properties['metal'] = (self.elements == 'MG') | (self.elements == 'ZN') | (self.elements == 'MN') |                          (self.elements == 'CA') | (self.elements == 'FE')
+        properties['metal'] = (self.elements == 'MG') | (self.elements == 'ZN') | (self.elements == 'MN') | (self.elements == 'CA') | (self.elements == 'FE')
         properties['occupancies'] = (self.elements != 'H') & (self.elements != 'HS') & (self.elements != 'HD')
         
         channels = np.zeros((len(self.elements), len(properties)), dtype=bool)
@@ -542,17 +514,4 @@ class Molecule2:
             
             features[c_voxel_ids] = n
 
-#             break
-            
         return features.reshape((N[0], N[1], N[2], -1))
-        
-#         # Initialize the occupancy array
-#         occupancy = np.zeros([len(centers), channels.shape[1]], dtype=np.float32)
-        
-#         for i in range(self.numAtoms):
-#             r = spatial.distance.cdist(self.coords[i].reshape((-1, 3)), centers)
-#             x = channels[i] / r.reshape(-1)[:, np.newaxis]
-#             n = 1.0 - np.exp(-np.power(x, 12))
-#             occupancy = np.maximum(occupancy, n)
-#         return occupancy.reshape((N[0], N[1], N[2], -1))
-
